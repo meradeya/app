@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: app
+  threads:
+    virtual:
+      enabled: true
+  jpa:
+    open-in-view: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
