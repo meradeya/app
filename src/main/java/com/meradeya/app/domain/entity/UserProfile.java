@@ -1,19 +1,22 @@
 package com.meradeya.app.domain.entity;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,36 +25,46 @@ import lombok.Setter;
 @Entity
 @Table(name = "user_profiles")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserProfile {
 
   @Id
-  @Column(name = "user_id", nullable = false)
+  @Column(name = "user_id")
   private UUID userId;
 
   @MapsId
+  @NotNull
+  @Setter
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id")
   private User user;
 
-  @Column(name = "display_name", nullable = false, length = 100)
+  @NotBlank
+  @Size(max = 100)
+  @Setter
+  @Column(name = "display_name")
   private String displayName;
 
-  @Column(name = "avatar_url", length = 500)
+  @Size(max = 500)
+  @Setter
+  @Column(name = "avatar_url")
   private String avatarUrl;
 
-  @Column(length = 200)
+  @Size(max = 200)
+  @Setter
+  @Column
   private String location;
 
+  @Lob
+  @Setter
   @Column(columnDefinition = "text")
   private String bio;
 
-  @Column(name = "updated_at", nullable = false)
+  @NotNull
+  @Column(name = "updated_at")
   private Instant updatedAt;
 
   @Version
-  @Column(nullable = false)
   private long version;
 
   @PrePersist
@@ -60,6 +73,20 @@ public class UserProfile {
     updatedAt = Instant.now();
   }
 
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof UserProfile that)) {
+      return false;
+    }
+    return userId != null && userId.equals(that.userId);
+  }
+
 }
-
-

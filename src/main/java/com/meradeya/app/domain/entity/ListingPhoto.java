@@ -1,8 +1,5 @@
 package com.meradeya.app.domain.entity;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,6 +11,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +25,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "listing_photos")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ListingPhoto {
 
@@ -30,21 +32,28 @@ public class ListingPhoto {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @NotNull
+  @Setter(AccessLevel.PACKAGE)
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "listing_id", nullable = false)
+  @JoinColumn(name = "listing_id")
   private Listing listing;
 
-  @Column(nullable = false, length = 500)
+  @NotBlank
+  @Size(max = 500)
+  @Setter
+  @Column
   private String url;
 
-  @Column(name = "display_order", nullable = false)
+  @Min(0)
+  @Setter
+  @Column(name = "display_order")
   private short displayOrder = 0;
 
-  @Column(name = "created_at", nullable = false, updatable = false)
+  @NotNull
+  @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 
   @Version
-  @Column(nullable = false)
   private long version;
 
   @PrePersist
@@ -52,6 +61,20 @@ public class ListingPhoto {
     createdAt = Instant.now();
   }
 
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ListingPhoto that)) {
+      return false;
+    }
+    return id != null && id.equals(that.id);
+  }
+
 }
-
-

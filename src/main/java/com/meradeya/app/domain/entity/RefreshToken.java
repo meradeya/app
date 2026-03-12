@@ -1,8 +1,5 @@
 package com.meradeya.app.domain.entity;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,6 +11,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +24,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "refresh_tokens")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
 
@@ -30,24 +31,31 @@ public class RefreshToken {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @NotNull
+  @Setter(AccessLevel.PACKAGE)
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id")
   private User user;
 
-  @Column(name = "token_hash", nullable = false)
+  @NotBlank
+  @Size(max = 255)
+  @Setter
+  @Column(name = "token_hash")
   private String tokenHash;
 
-  @Column(name = "expires_at", nullable = false)
+  @NotNull
+  @Setter
+  @Column(name = "expires_at")
   private Instant expiresAt;
 
-  @Column(nullable = false)
+  @Setter
   private boolean revoked = false;
 
-  @Column(name = "created_at", nullable = false, updatable = false)
+  @NotNull
+  @Column(name = "created_at", updatable = false)
   private Instant createdAt;
 
   @Version
-  @Column(nullable = false)
   private long version;
 
   @PrePersist
@@ -55,6 +63,20 @@ public class RefreshToken {
     createdAt = Instant.now();
   }
 
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RefreshToken that)) {
+      return false;
+    }
+    return id != null && id.equals(that.id);
+  }
+
 }
-
-
