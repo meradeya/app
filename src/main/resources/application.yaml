@@ -7,6 +7,14 @@ spring:
   jpa:
     open-in-view: false
 
+app:
+  auth:
+    jwt-secret: ${JWT_SECRET}
+    access-token-expiry-seconds: ${ACCESS_TOKEN_EXPIRY:900}
+    refresh-token-expiry-seconds: ${REFRESH_TOKEN_EXPIRY:2592000}
+    email-verify-token-expiry-seconds: ${EMAIL_VERIFY_EXPIRY:86400}
+    password-reset-token-expiry-seconds: ${PASSWORD_RESET_EXPIRY:3600}
+
 springdoc:
   api-docs:
     enabled: false

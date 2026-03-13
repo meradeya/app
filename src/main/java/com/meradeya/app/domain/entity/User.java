@@ -76,17 +76,23 @@ public class User {
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private UserProfile profile;
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   @Getter(AccessLevel.NONE)
   private List<RefreshToken> refreshTokens = new ArrayList<>();
 
-  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   @Getter(AccessLevel.NONE)
   private List<AuthToken> authTokens = new ArrayList<>();
 
   @OneToMany(mappedBy = "seller", fetch = FetchType.LAZY)
   @Getter(AccessLevel.NONE)
   private List<Listing> listings = new ArrayList<>();
+
+  
+  public User(String email, String passwordHash) {
+    this.email = email;
+    this.passwordHash = passwordHash;
+  }
 
   public List<RefreshToken> getRefreshTokens() {
     return Collections.unmodifiableList(refreshTokens);
@@ -99,7 +105,7 @@ public class User {
   public List<Listing> getListings() {
     return Collections.unmodifiableList(listings);
   }
-
+  
   public void addRefreshToken(RefreshToken token) {
     refreshTokens.add(token);
     token.setUser(this);
@@ -128,6 +134,13 @@ public class User {
   public void removeListing(Listing listing) {
     listings.remove(listing);
     listing.setSeller(null);
+  }
+
+  public void setProfile(UserProfile profile) {
+    this.profile = profile;
+    if (profile != null) {
+      profile.setUser(this);
+    }
   }
 
   @PrePersist
