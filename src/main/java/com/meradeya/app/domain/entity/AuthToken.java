@@ -66,6 +66,14 @@ public class AuthToken {
 
   @Version
   private long version;
+  
+
+  public AuthToken(String tokenHash, AuthTokenType type, Instant expiresAt) {
+    this.tokenHash = tokenHash;
+    this.type = type;
+    this.expiresAt = expiresAt;
+  }
+
 
   @PrePersist
   void onCreate() {

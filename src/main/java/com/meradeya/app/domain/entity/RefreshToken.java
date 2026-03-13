@@ -58,6 +58,12 @@ public class RefreshToken {
   @Version
   private long version;
 
+  public RefreshToken(String tokenHash, Instant expiresAt) {
+    this.tokenHash = tokenHash;
+    this.expiresAt = expiresAt;
+  }
+
+
   @PrePersist
   void onCreate() {
     createdAt = Instant.now();
