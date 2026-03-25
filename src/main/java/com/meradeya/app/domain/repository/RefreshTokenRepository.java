@@ -2,7 +2,6 @@ package com.meradeya.app.domain.repository;
 
 import com.meradeya.app.domain.entity.RefreshToken;
 import com.meradeya.app.domain.entity.User;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,9 +19,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
       SELECT r FROM RefreshToken r
       WHERE r.tokenHash = :tokenHash
         AND r.revoked = false
-        AND r.expiresAt > :now
+        AND r.expiresAt > CURRENT_TIMESTAMP
       """)
-  Optional<RefreshToken> findActiveByHash(String tokenHash, Instant now);
+  Optional<RefreshToken> findActiveByHash(String tokenHash);
 
   /**
    * Revoke all refresh tokens for a user (used after password reset).

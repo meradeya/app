@@ -1,12 +1,19 @@
 package com.meradeya.app.exception;
 
-/**
- * Thrown when credentials are invalid (wrong email or password).
- */
-public class InvalidCredentialsException extends RuntimeException {
+import com.meradeya.app.exception.face.AppException;
+
+
+public class InvalidCredentialsException extends RuntimeException implements AppException {
+
+  public static final String TITLE = "Invalid Credentials";
+  public static final String MESSAGE = "Invalid email or password.";
 
   public InvalidCredentialsException() {
-    super("Invalid email or password.");
+    super(MESSAGE);
+  }
+
+  @Override
+  public String getTitle() {
+    return TITLE;
   }
 }
-

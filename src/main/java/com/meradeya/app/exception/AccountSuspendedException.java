@@ -1,12 +1,19 @@
 package com.meradeya.app.exception;
 
-/**
- * Thrown when a suspended account attempts to log in.
- */
-public class AccountSuspendedException extends RuntimeException {
+import com.meradeya.app.exception.face.AppException;
+
+
+public class AccountSuspendedException extends RuntimeException implements AppException {
+
+  public static final String TITLE = "Account Suspended";
+  public static final String MESSAGE = "Your account has been suspended.";
 
   public AccountSuspendedException() {
-    super("Your account has been suspended.");
+    super(MESSAGE);
+  }
+
+  @Override
+  public String getTitle() {
+    return TITLE;
   }
 }
-

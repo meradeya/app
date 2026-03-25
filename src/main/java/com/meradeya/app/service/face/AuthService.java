@@ -1,7 +1,7 @@
 package com.meradeya.app.service.face;
 
-import com.meradeya.app.generated.api.model.RegisterResponse;
-import com.meradeya.app.generated.api.model.TokenPair;
+import com.meradeya.app.dto.auth.RegisterResponse;
+import com.meradeya.app.dto.auth.TokenPair;
 
 public interface AuthService {
 

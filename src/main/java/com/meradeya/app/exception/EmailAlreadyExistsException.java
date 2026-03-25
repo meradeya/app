@@ -1,12 +1,19 @@
 package com.meradeya.app.exception;
 
-/**
- * Thrown when registration is attempted with an already-registered email.
- */
-public class EmailAlreadyExistsException extends RuntimeException {
+import com.meradeya.app.exception.face.AppException;
 
-  public EmailAlreadyExistsException(String email) {
-    super("An account with email '" + email + "' already exists.");
+
+public class EmailAlreadyExistsException extends RuntimeException implements AppException {
+
+  public static final String TITLE = "Email Already Exists";
+  public static final String MESSAGE = "An account with this email already exists.";
+
+  public EmailAlreadyExistsException() {
+    super(MESSAGE);
+  }
+
+  @Override
+  public String getTitle() {
+    return TITLE;
   }
 }
-

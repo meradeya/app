@@ -1,16 +1,22 @@
 package com.meradeya.app.exception;
 
-/**
- * Thrown when an auth/refresh token is invalid, expired, already used, or revoked.
- */
-public class InvalidTokenException extends RuntimeException {
+import com.meradeya.app.exception.face.AppException;
+
+public class InvalidTokenException extends RuntimeException implements AppException {
+
+  public static final String TITLE = "Invalid Token";
+  public static final String MESSAGE = "The token is invalid or has expired.";
 
   public InvalidTokenException(String message) {
     super(message);
   }
 
   public InvalidTokenException() {
-    super("The token is invalid or has expired.");
+    super(MESSAGE);
+  }
+
+  @Override
+  public String getTitle() {
+    return TITLE;
   }
 }
-
