@@ -2,7 +2,7 @@ package com.meradeya.app.exception;
 
 import com.meradeya.app.exception.face.AppException;
 
-public class InvalidTokenException extends RuntimeException implements AppException {
+public class InvalidTokenException extends AppException {
 
   public static final String TITLE = "Invalid Token";
   public static final String MESSAGE = "The token is invalid or has expired.";

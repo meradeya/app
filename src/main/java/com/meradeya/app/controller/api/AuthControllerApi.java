@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Auth", description = "Authentication and token management")
-@RequestMapping("/v1")
+@RequestMapping(value = "/v{version}", version = "1.0")
 public interface AuthControllerApi {
 
   @Operation(
@@ -89,11 +88,14 @@ public interface AuthControllerApi {
   @Operation(
       operationId = "logout",
       summary = "Revoke refresh token",
-      description = "Marks the supplied refresh token as revoked. Idempotent.",
-      security = @SecurityRequirement(name = "bearerAuth"),
+      description = """
+          Marks the supplied refresh token as revoked. Idempotent — revoking an already-revoked
+          or unknown token still returns 204. No JWT required: the refresh token is itself the
+          credential being invalidated, and this endpoint must remain reachable regardless of
+          access-token state (e.g. when the JWT has already expired).
+          """,
       responses = {
-          @ApiResponse(responseCode = "204", description = "Logged out"),
-          @ApiResponse(responseCode = "401", description = "Missing or invalid access token")
+          @ApiResponse(responseCode = "204", description = "Token revoked (or was already revoked)")
       }
   )
   @PostMapping("/auth/logout")

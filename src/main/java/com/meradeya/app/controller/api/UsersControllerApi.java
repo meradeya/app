@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Users", description = "User profiles and listings")
-@RequestMapping("/v1")
+@RequestMapping(value = "/v{version}", version = "1.0")
 public interface UsersControllerApi {
 
   @Operation(

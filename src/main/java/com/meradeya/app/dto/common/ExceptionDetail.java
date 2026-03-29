@@ -7,8 +7,8 @@ import java.util.Map;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 
-//Basically this class exists so we can both use provided ProblemDetail in code and reference it in 
-// the api docs. Maybe it makes sense to have a separate class just for docs? 
+//Basically this class exists so we can both use in the code ProblemDetail provided by spring and 
+// reference it in the api docs. Maybe it makes sense to have a separate class just for docs? 
 @Schema(name = "ProblemDetail", description = "RFC 7807 Problem Details error response")
 public class ExceptionDetail extends ProblemDetail {
 

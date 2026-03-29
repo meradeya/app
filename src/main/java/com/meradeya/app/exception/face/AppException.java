@@ -1,20 +1,19 @@
 package com.meradeya.app.exception.face;
 
 /**
- * Marker interface for application-level exceptions that carry a
- * human-readable {@link #getTitle()}.
+ * Base class for all application-level exceptions.
  *
- * <p>All implementing classes must extend {@link RuntimeException} so that
- * {@link #getMessage()} is always available.
+ * <p>Subclasses must provide a {@link #getTitle()} implementation that returns
+ * a short, human-readable title for the problem.
  */
-public interface AppException {
+public abstract class AppException extends RuntimeException {
 
-  /** Short, human-readable title for the problem (e.g. {@code "Email Already Exists"}). */
-  String getTitle();
+  protected AppException(String message) {
+    super(message);
+  }
 
   /**
-   * Human-readable detail message describing this specific occurrence.
-   * Satisfied automatically by any {@link RuntimeException} subclass.
+   * Short, human-readable title for the problem.
    */
-  String getMessage();
+  public abstract String getTitle();
 }
