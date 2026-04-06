@@ -67,6 +67,13 @@ public class UserProfile {
   @Version
   private long version;
 
+  
+  public UserProfile(User user, String displayName) {
+    this.user = user;
+    this.displayName = displayName;
+  }
+
+
   @PrePersist
   @PreUpdate
   void touchTimestamp() {
