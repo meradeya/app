@@ -1,7 +1,7 @@
 package com.meradeya.app.controller.api;
 
 import com.meradeya.app.dto.common.ExceptionDetail;
-import com.meradeya.app.dto.user.ListingSummaryPage;
+import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
 import com.meradeya.app.dto.user.UpdateProfileRequest;
@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -37,9 +38,9 @@ public interface UsersControllerApi {
       responses = {
           @ApiResponse(responseCode = "200", description = "User profile",
               content = @Content(mediaType = "application/json", schema = @Schema(implementation = MyProfile.class))),
-          @ApiResponse(responseCode = "401", description = "Not authenticated"),
-          @ApiResponse(responseCode = "403", description = "Access denied"),
-          @ApiResponse(responseCode = "404", description = "User not found")
+          @ApiResponse(responseCode = "401", description = "Not authenticated", content = @Content),
+          @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       }
   )
   @GetMapping("/users/{userId}")
@@ -61,10 +62,10 @@ public interface UsersControllerApi {
       responses = {
           @ApiResponse(responseCode = "200", description = "Updated profile",
               content = @Content(mediaType = "application/json", schema = @Schema(implementation = MyProfile.class))),
-          @ApiResponse(responseCode = "400", description = "Validation error"),
-          @ApiResponse(responseCode = "401", description = "Not authenticated"),
-          @ApiResponse(responseCode = "403", description = "Access denied"),
-          @ApiResponse(responseCode = "404", description = "User not found"),
+          @ApiResponse(responseCode = "400", description = "Validation error", content = @Content),
+          @ApiResponse(responseCode = "401", description = "Not authenticated", content = @Content),
+          @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+          @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
           @ApiResponse(responseCode = "409", description = "Optimistic lock conflict — re-fetch and retry",
               content = @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionDetail.class),
                   examples = @ExampleObject(value = """
@@ -90,7 +91,7 @@ public interface UsersControllerApi {
       responses = {
           @ApiResponse(responseCode = "200", description = "Public profile",
               content = @Content(mediaType = "application/json", schema = @Schema(implementation = PublicProfile.class))),
-          @ApiResponse(responseCode = "404", description = "User not found")
+          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       }
   )
   @GetMapping("/users/{userId}/profile")
@@ -109,15 +110,14 @@ public interface UsersControllerApi {
           """,
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
-          @ApiResponse(responseCode = "200", description = "Paginated listing summaries",
-              content = @Content(mediaType = "application/json", schema = @Schema(implementation = ListingSummaryPage.class))),
-          @ApiResponse(responseCode = "401", description = "Not authenticated"),
-          @ApiResponse(responseCode = "403", description = "Access denied"),
-          @ApiResponse(responseCode = "404", description = "User not found")
+          @ApiResponse(responseCode = "200", description = "Paginated listing summaries"),
+          @ApiResponse(responseCode = "401", description = "Not authenticated", content = @Content),
+          @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
+          @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       }
   )
   @GetMapping("/users/{userId}/listings")
-  ResponseEntity<ListingSummaryPage> getUserListings(
+  ResponseEntity<Page<ListingSummary>> getUserListings(
       @Parameter(name = "userId", description = "Target user's ID", required = true, in = ParameterIn.PATH)
       @PathVariable UUID userId,
 

@@ -1,12 +1,13 @@
 package com.meradeya.app.controller.impl;
 
 import com.meradeya.app.controller.api.UsersControllerApi;
-import com.meradeya.app.dto.user.ListingSummaryPage;
+import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
 import com.meradeya.app.dto.user.UpdateProfileRequest;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +45,7 @@ public class UsersController implements UsersControllerApi {
   }
 
   @Override
-  public ResponseEntity<ListingSummaryPage> getUserListings(UUID userId, String status, Integer page,
+  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status, Integer page,
       Integer pageSize) {
     log.info("getUserListings userId={} status={} page={}", userId, status, page);
     // TODO: load listings for the specified user with optional status filter, verify ownership

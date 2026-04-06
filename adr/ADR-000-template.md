@@ -1,26 +1,46 @@
-# {short title, representative of solved problem and found solution}
+# Title
 
-# These are optional metadata elements. Feel free to remove any of them.
-status: "{proposed | rejected | accepted | deprecated | … | superseded by ADR-0123}"
+- Status: Proposed | Accepted | Rejected | Deprecated | Superseded by [ADR #]
 
 ## Context and Problem Statement
+Why was this decision necessary?
 
-{Describe the context and problem statement, e.g., in free form using two to three sentences or in the form of an illustrative story. You may want to articulate the problem in form of a question and add links to collaboration boards or issue management systems.}
+State the problem that made this decision necessary.
+Don't include too much detail. An ADR is not meant to be a full-blown solution design. Keep records concise, assertive, and factual.
 
-## Considered Options
-
-* {title of option 1}
-* {title of option 2}
-* {title of option 3}
-* … <!-- numbers of options can vary -->
 
 ## Decision Outcome
 
-Chosen option: "{title of option 1}", because {justification. e.g., only option, which meets k.o. criterion decision driver | which resolves force {force} | … | comes out best (see below)}.
+What was decided and why?
 
-<!-- This is an optional element. Feel free to remove. -->
-### Consequences
+Chosen option: "{option title}", because {justification — why this option, not how it works}.
 
-* Good, because {positive consequence, e.g., improvement of one or more desired qualities, …}
-* Bad, because {negative consequence, e.g., compromising one or more desired qualities, …}
-* … <!-- numbers of consequences can vary -->
+Don't explain HOW was the decision implemented. Focus on WHY was is decided.
+
+
+## Alternatives Considered
+
+(If applicable)
+
+<!-- Only list options that were genuinely evaluated and rejected. -->
+<!-- If none were explored, replace this block with: "None explored." -->
+
+* Option 1 — why rejected
+* Option 2 — why rejected
+
+
+## Consequences
+
+What trade-offs were made, and what does this mean going forward?
+
+<!-- State only known, factual trade-offs. If unknown, write "Not identified." -->
+
+**Positive:**
+- …
+
+**Negative:**
+- …
+
+[//]: # (**AI writing rules:** factual · assertive · imperative · ≤200 words total.)
+[//]: # (Explain **why**, never **how**. No implementation details.)
+[//]: # (Empty-handed? Write it — don't invent: *"None explored."* / *"Not identified."*)
