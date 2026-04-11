@@ -1,6 +1,5 @@
 package com.meradeya.app.service.impl;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.meradeya.app.domain.entity.AuthToken;
 import com.meradeya.app.domain.entity.User;
 import com.meradeya.app.domain.entity.UserProfile;
@@ -15,6 +14,7 @@ import com.meradeya.app.service.face.AuthService;
 import com.meradeya.app.service.face.TokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,7 @@ public class AuthServiceImpl implements AuthService {
 
   private final UserRepository userRepository;
   private final TokenService tokenService;
+  private final PasswordEncoder passwordEncoder;
 
   @Override
   public RegisterResponse registerUser(String email, String rawPassword, String displayName) {
@@ -58,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
     User user = userRepository.findByEmail(email.toLowerCase())
         .orElseThrow(InvalidCredentialsException::new);
 
-    if (!BCrypt.verifyer().verify(rawPassword.toCharArray(), user.getPasswordHash()).verified) {
+    if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
       throw new InvalidCredentialsException();
     }
 
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   private String hashPassword(String newPassword) {
-    return BCrypt.withDefaults().hashToString(12, newPassword.toCharArray());
+    return passwordEncoder.encode(newPassword);
   }
-  
+
 }

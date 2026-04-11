@@ -5,51 +5,55 @@ import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
 import com.meradeya.app.dto.user.UpdateProfileRequest;
+import com.meradeya.app.service.face.UserService;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for user-profile endpoints. All OpenAPI annotations live in {@link UsersControllerApi};
- * this class contains only business logic delegation.
+ * REST controller for user-profile endpoints. All OpenAPI annotations live in
+ * {@link UsersControllerApi}; this class contains only business logic delegation.
  */
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 public class UsersController implements UsersControllerApi {
 
+  private final UserService userService;
+
   @Override
-  public ResponseEntity<MyProfile> getUserProfile(UUID userId) {
-    log.info("getUserProfile userId={}", userId);
-    // TODO: load user by ID, verify ownership, map to MyProfile
-    log.info("getUserProfile done userId={}", userId);
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  public ResponseEntity<MyProfile> getUserProfile() {
+    log.info("getUserProfile");
+    MyProfile profile = userService.getUserProfile();
+    log.info("getUserProfile done");
+    return ResponseEntity.ok(profile);
   }
 
   @Override
-  public ResponseEntity<MyProfile> updateUserProfile(UUID userId, UpdateProfileRequest request) {
-    log.info("updateUserProfile userId={}", userId);
-    // TODO: partial-update user profile with optimistic locking, verify ownership
-    log.info("updateUserProfile done userId={}", userId);
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+  public ResponseEntity<MyProfile> updateUserProfile(UpdateProfileRequest request) {
+    log.info("updateUserProfile");
+    MyProfile profile = userService.updateUserProfile(request);
+    log.info("updateUserProfile done");
+    return ResponseEntity.ok(profile);
   }
 
   @Override
   public ResponseEntity<PublicProfile> getPublicProfile(UUID userId) {
     log.info("getPublicProfile userId={}", userId);
-    // TODO: load user by ID, map to PublicProfile (exclude private fields)
+    PublicProfile profile = userService.getPublicProfile(userId);
     log.info("getPublicProfile done userId={}", userId);
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    return ResponseEntity.ok(profile);
   }
 
   @Override
-  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status, Integer page,
+  public ResponseEntity<Page<ListingSummary>> getUserListings(String status, Integer page,
       Integer pageSize) {
-    log.info("getUserListings userId={} status={} page={}", userId, status, page);
-    // TODO: load listings for the specified user with optional status filter, verify ownership
-    log.info("getUserListings done userId={} status={} page={}", userId, status, page);
-    return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    log.info("getUserListings status={} page={}", status, page);
+    Page<ListingSummary> listings = userService.getUserListings(status, page, pageSize);
+    log.info("getUserListings done status={} page={}", status, page);
+    return ResponseEntity.ok(listings);
   }
 }
