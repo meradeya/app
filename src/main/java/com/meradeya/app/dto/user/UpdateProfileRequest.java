@@ -1,6 +1,7 @@
 package com.meradeya.app.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 @Schema(description = "Partial update payload for the authenticated user's profile")
@@ -20,6 +21,7 @@ public record UpdateProfileRequest(
     String bio,
 
     @Schema(description = "Current version for optimistic locking (from last GET)")
+    @NotBlank
     Long version
 ) {
 
