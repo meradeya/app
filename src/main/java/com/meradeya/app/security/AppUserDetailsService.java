@@ -37,6 +37,5 @@ public class AppUserDetailsService implements UserDetailsService {
   private String normalizeEmail(String email) {
     return email.toLowerCase(Locale.ROOT);
   }
+
 }
-
-

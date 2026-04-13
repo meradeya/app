@@ -9,14 +9,13 @@ import org.springframework.data.domain.Page;
 
 public interface UserService {
 
-  MyProfile getUserProfile();
+  MyProfile getUserProfile(UUID requestedUserId);
 
-  MyProfile updateUserProfile(UpdateProfileRequest request);
+  MyProfile updateUserProfile(UUID requestedUserId, UpdateProfileRequest request);
 
   PublicProfile getPublicProfile(UUID requestedUserId);
 
-  Page<ListingSummary> getUserListings(String status, Integer page, Integer pageSize);
+  Page<ListingSummary> getUserListings(UUID requestedUserId, String status, Integer page,
+      Integer pageSize);
+
 }
-
-
-

@@ -14,8 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for user-profile endpoints. All OpenAPI annotations live in
- * {@link UsersControllerApi}; this class contains only business logic delegation.
+ * REST controller for user-profile endpoints. All OpenAPI annotations live in {@link UsersControllerApi};
+ * this class contains only business logic delegation.
  */
 @Slf4j
 @RestController
@@ -25,18 +25,18 @@ public class UsersController implements UsersControllerApi {
   private final UserService userService;
 
   @Override
-  public ResponseEntity<MyProfile> getUserProfile() {
-    log.info("getUserProfile");
-    MyProfile profile = userService.getUserProfile();
-    log.info("getUserProfile done");
+  public ResponseEntity<MyProfile> getUserProfile(UUID userId) {
+    log.info("getUserProfile userId={}", userId);
+    MyProfile profile = userService.getUserProfile(userId);
+    log.info("getUserProfile done userId={}", userId);
     return ResponseEntity.ok(profile);
   }
 
   @Override
-  public ResponseEntity<MyProfile> updateUserProfile(UpdateProfileRequest request) {
-    log.info("updateUserProfile");
-    MyProfile profile = userService.updateUserProfile(request);
-    log.info("updateUserProfile done");
+  public ResponseEntity<MyProfile> updateUserProfile(UUID userId, UpdateProfileRequest request) {
+    log.info("updateUserProfile userId={}", userId);
+    MyProfile profile = userService.updateUserProfile(userId, request);
+    log.info("updateUserProfile done userId={}", userId);
     return ResponseEntity.ok(profile);
   }
 
@@ -49,11 +49,11 @@ public class UsersController implements UsersControllerApi {
   }
 
   @Override
-  public ResponseEntity<Page<ListingSummary>> getUserListings(String status, Integer page,
+  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status, Integer page,
       Integer pageSize) {
-    log.info("getUserListings status={} page={}", status, page);
-    Page<ListingSummary> listings = userService.getUserListings(status, page, pageSize);
-    log.info("getUserListings done status={} page={}", status, page);
+    log.info("getUserListings userId={} status={} page={}", userId, status, page);
+    Page<ListingSummary> listings = userService.getUserListings(userId, status, page, pageSize);
+    log.info("getUserListings done userId={} status={} page={}", userId, status, page);
     return ResponseEntity.ok(listings);
   }
 }

@@ -33,7 +33,7 @@ public interface UsersControllerApi {
   @Operation(
       operationId = "getUserProfile",
       summary = "Get user account + profile",
-      description = "Returns the authenticated user's full record including private fields (email, emailVerified, status). User identity is resolved from the access token.",
+      description = "Returns the specified user's full record including private fields (email, emailVerified, status). Requires authentication and ownership.",
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
           @ApiResponse(responseCode = "200", description = "User profile",
@@ -43,17 +43,20 @@ public interface UsersControllerApi {
           @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       }
   )
-  @GetMapping("/users/me")
-  ResponseEntity<MyProfile> getUserProfile();
+  @GetMapping("/users/{userId}")
+  ResponseEntity<MyProfile> getUserProfile(
+      @Parameter(name = "userId", description = "Target user's ID", required = true, in = ParameterIn.PATH)
+      @PathVariable UUID userId
+  );
 
   @Operation(
       operationId = "updateUserProfile",
       summary = "Update user profile",
       description = """
-          Partial update of the authenticated user's profile fields.
+          Partial update of the specified user's profile fields.
           Supply version (from the last GET) for optimistic-lock protection.
           Email and password are changed via dedicated flows.
-          User identity is resolved from the access token.
+          Requires authentication and ownership.
           """,
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
@@ -70,8 +73,12 @@ public interface UsersControllerApi {
                       """)))
       }
   )
-  @PatchMapping("/users/me")
-  ResponseEntity<MyProfile> updateUserProfile(@Valid @RequestBody UpdateProfileRequest request);
+  @PatchMapping("/users/{userId}")
+  ResponseEntity<MyProfile> updateUserProfile(
+      @Parameter(name = "userId", description = "Target user's ID", required = true, in = ParameterIn.PATH)
+      @PathVariable UUID userId,
+      @Valid @RequestBody UpdateProfileRequest request
+  );
 
   @Operation(
       operationId = "getPublicProfile",
@@ -97,9 +104,9 @@ public interface UsersControllerApi {
       operationId = "getUserListings",
       summary = "List user's listings",
       description = """
-          Returns paginated listings belonging to the authenticated user.
-          All statuses are visible to the owner account. Use ?status to filter.
-          User identity is resolved from the access token.
+          Returns paginated listings belonging to the specified user.
+          All statuses are visible to the owner. Use ?status to filter.
+          Requires authentication and ownership.
           """,
       security = @SecurityRequirement(name = "bearerAuth"),
       responses = {
@@ -109,8 +116,10 @@ public interface UsersControllerApi {
           @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
       }
   )
-  @GetMapping("/users/me/listings")
+  @GetMapping("/users/{userId}/listings")
   ResponseEntity<Page<ListingSummary>> getUserListings(
+      @Parameter(name = "userId", description = "Target user's ID", required = true, in = ParameterIn.PATH)
+      @PathVariable UUID userId,
 
       @Parameter(name = "status", description = "Filter by listing status", in = ParameterIn.QUERY,
           schema = @Schema(allowableValues = {"DRAFT", "ACTIVE", "PAUSED", "SOLD", "ARCHIVED"}))

@@ -1,6 +1,6 @@
 package com.meradeya.app.security;
 
-import com.meradeya.app.service.face.CurrentUserProvider;
+import com.meradeya.app.security.face.CurrentUserProvider;
 import java.util.UUID;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -19,5 +19,5 @@ public class SecurityContextCurrentUserProvider implements CurrentUserProvider {
     }
     return appUserPrincipal.getUserId();
   }
-}
 
+}

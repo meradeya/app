@@ -36,7 +36,7 @@ public class AppUserPrincipal implements UserDetails {
 
   @Override
   public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
-    return DEFAULT_AUTHORITIES;
+    return DEFAULT_AUTHORITIES; // TODO: Implement RBAC (#5)
   }
 
   @Override
@@ -59,6 +59,5 @@ public class AppUserPrincipal implements UserDetails {
   public boolean isEnabled() {
     return status != UserStatus.DELETED;
   }
+
 }
-
-
