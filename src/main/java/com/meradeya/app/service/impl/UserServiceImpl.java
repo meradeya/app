@@ -23,6 +23,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Default {@link UserService} implementation backed by JPA repositories.
+ *
+ * <p>The service enforces owner access for private endpoints and delegates entity-to-DTO mapping
+ * and
+ * shared validation to {@link UserServiceHelper}.
+ *
+ * @apiNote Private operations are path-id based and must pass ownership checks; public profile
+ * reads are intentionally not owner-restricted.
+ */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -32,6 +42,13 @@ public class UserServiceImpl implements UserService {
   private final ListingRepository listingRepository;
   private final UserServiceHelper userServiceHelper;
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws ResponseStatusException with HTTP 403 on ownership mismatch or 404 when user is
+   *                                 missing
+   * @implSpec Requires ownership validation before loading private profile data.
+   */
   @Override
   public MyProfile getUserProfile(UUID requestedUserId) {
     User user = userServiceHelper.findUserOrThrow(
@@ -39,6 +56,17 @@ public class UserServiceImpl implements UserService {
     return userServiceHelper.toMyProfile(user);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws ResponseStatusException with HTTP 400 for missing version, 403 for ownership mismatch,
+   *                                 404 when user/profile does not exist, or 409 for
+   *                                 stale/concurrent updates
+   * @implSpec Performs optimistic-lock validation using the profile version provided by the
+   * client.
+   * @implNote A repository flush is forced to convert concurrent update races into a 409 response
+   * in the current request.
+   */
   @Override
   @Transactional
   public MyProfile updateUserProfile(UUID requestedUserId, UpdateProfileRequest request) {
@@ -67,12 +95,23 @@ public class UserServiceImpl implements UserService {
     return userServiceHelper.toMyProfile(user);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public PublicProfile getPublicProfile(UUID requestedUserId) {
     User user = userServiceHelper.findUserOrThrow(requestedUserId);
     return userServiceHelper.toPublicProfile(user);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws ResponseStatusException with HTTP 403 on ownership mismatch, 404 when user is missing,
+   *                                 or 400 for invalid paging/filter input
+   * @implSpec Returns owner-visible listings only; invalid status or pagination values are rejected
+   * with HTTP 400.
+   */
   @Override
   public Page<ListingSummary> getUserListings(UUID requestedUserId, String status, Integer page,
       Integer pageSize) {

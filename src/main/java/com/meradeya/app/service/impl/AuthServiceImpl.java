@@ -18,6 +18,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Default implementation of {@link AuthService}.
+ *
+ * <p>Handles registration, credential-based login, token refresh/logout, email verification, and
+ * password-reset flows.
+ *
+ * @implNote This service coordinates persistence and token lifecycle but does not send
+ * emails/events directly yet.
+ */
 @Slf4j
 @Service
 @Transactional
@@ -28,6 +37,13 @@ public class AuthServiceImpl implements AuthService {
   private final TokenService tokenService;
   private final PasswordEncoder passwordEncoder;
 
+  /**
+   * {@inheritDoc}
+   *
+   * @implSpec Email uniqueness is enforced on normalized lower-case email addresses.
+   * @implNote Registration also provisions an email-verification auth token and returns an initial
+   * access/refresh token pair.
+   */
   @Override
   public RegisterResponse registerUser(String email, String rawPassword, String displayName) {
     String normalizedEmail = email.toLowerCase();
@@ -54,6 +70,12 @@ public class AuthServiceImpl implements AuthService {
         tokens.expiresIn());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @implSpec Login authenticates by email and password and rejects suspended accounts.
+   * @implNote Error mapping intentionally avoids revealing whether email or password was invalid.
+   */
   @Override
   public TokenPair login(String email, String rawPassword) {
     User user = userRepository.findByEmail(email.toLowerCase())
@@ -70,16 +92,25 @@ public class AuthServiceImpl implements AuthService {
     return tokenService.createTokenPair(user);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void logout(String rawRefreshToken) {
     tokenService.revokeRefreshToken(rawRefreshToken);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public TokenPair refresh(String rawRefreshToken) {
     return tokenService.rotateRefreshToken(rawRefreshToken);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void verifyEmail(String rawToken) {
     AuthToken authToken = tokenService.consumeEmailVerifyToken(rawToken);
@@ -87,6 +118,12 @@ public class AuthServiceImpl implements AuthService {
     log.info("Email verified for user id={}", authToken.getUser().getId());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @implNote The method intentionally does not reveal whether an email exists to prevent account
+   * enumeration.
+   */
   @Override
   public void requestPasswordReset(String email) {
     // Always silently succeed to prevent email enumeration
@@ -98,6 +135,9 @@ public class AuthServiceImpl implements AuthService {
     });
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void confirmPasswordReset(String rawToken, String newPassword) {
     var authToken = tokenService.consumePasswordResetToken(rawToken);
@@ -107,6 +147,12 @@ public class AuthServiceImpl implements AuthService {
     log.info("Password reset completed for user id={}", user.getId());
   }
 
+  /**
+   * Hashes a raw password using the configured {@link PasswordEncoder}.
+   *
+   * @param newPassword raw password
+   * @return encoded password hash
+   */
   private String hashPassword(String newPassword) {
     return passwordEncoder.encode(newPassword);
   }

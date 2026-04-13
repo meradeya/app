@@ -7,9 +7,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Reads the current authenticated user id from Spring Security context.
+ *
+ * <p>Expected principal type is {@link AppUserPrincipal} populated by JWT authentication.
+ *
+ * @apiNote Intended for service-layer ownership checks where path/resource ids must match the
+ * authenticated caller.
+ */
 @Component
 public class SecurityContextCurrentUserProvider implements CurrentUserProvider {
 
+  /**
+   * Returns the authenticated user id from the current security context.
+   *
+   * @return authenticated user id
+   * @throws AccessDeniedException when authentication is absent or principal type is unsupported
+   * @implSpec Fails closed: any non-{@link AppUserPrincipal} principal is treated as
+   * unauthenticated.
+   */
   @Override
   public UUID currentUserId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

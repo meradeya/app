@@ -26,10 +26,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * Contract for user profile and listing endpoints.
+ *
+ * <p>This interface carries OpenAPI metadata and request mappings, while concrete controllers are
+ * responsible for orchestration and delegation.
+ *
+ * @apiNote Private endpoints are owner-restricted: callers must authenticate and reference their
+ * own user id.
+ */
 @Tag(name = "Users", description = "User profiles and listings")
 @RequestMapping(value = "/v{version}", version = "1.0")
 public interface UsersControllerApi {
 
+  /**
+   * Returns the private profile view for the requested user.
+   *
+   * @param userId identifier from the path; must match the authenticated principal for access
+   * @return authenticated user's full profile payload
+   */
   @Operation(
       operationId = "getUserProfile",
       summary = "Get user account + profile",
@@ -49,6 +64,15 @@ public interface UsersControllerApi {
       @PathVariable UUID userId
   );
 
+  /**
+   * Applies a partial profile update for the requested user.
+   *
+   * @param userId  identifier from the path; must match the authenticated principal for access
+   * @param request partial update payload including optimistic-lock {@code version}
+   * @return updated private profile payload
+   * @apiNote Email and password changes are intentionally handled by dedicated authentication
+   * flows.
+   */
   @Operation(
       operationId = "updateUserProfile",
       summary = "Update user profile",
@@ -80,6 +104,12 @@ public interface UsersControllerApi {
       @Valid @RequestBody UpdateProfileRequest request
   );
 
+  /**
+   * Returns the public profile view for the requested user.
+   *
+   * @param userId target user identifier
+   * @return public profile payload without private account fields
+   */
   @Operation(
       operationId = "getPublicProfile",
       summary = "Get public profile",
@@ -100,6 +130,15 @@ public interface UsersControllerApi {
       @PathVariable UUID userId
   );
 
+  /**
+   * Returns paginated listings for the requested owner.
+   *
+   * @param userId   identifier from the path; must match the authenticated principal for access
+   * @param status   optional listing status filter (for example {@code ACTIVE})
+   * @param page     zero-based page index
+   * @param pageSize number of items per page
+   * @return page of listing summaries
+   */
   @Operation(
       operationId = "getUserListings",
       summary = "List user's listings",

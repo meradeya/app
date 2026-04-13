@@ -19,6 +19,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Shared helper methods for {@code UserService} implementations.
+ *
+ * <p>Centralizes ownership checks, entity loading, and mapping logic to keep services compact and
+ * consistent.
+ *
+ * @implNote Helper methods translate domain-level failures into HTTP-friendly
+ * {@link ResponseStatusException} instances used by REST flows.
+ */
 @Component
 @RequiredArgsConstructor
 public class UserServiceHelper {
@@ -27,6 +36,15 @@ public class UserServiceHelper {
   private final UserRepository userRepository;
 
 
+  /**
+   * Verifies that a requested user id matches the authenticated user.
+   *
+   * @param requestedUserId user id supplied by the caller
+   * @return authenticated user id when the ownership check succeeds
+   * @throws ResponseStatusException with HTTP 403 when caller tries to access another user's
+   *                                 resource
+   * @apiNote This is the primary guard against horizontal privilege escalation.
+   */
   public UUID requireOwnerAccess(UUID requestedUserId) {
     UUID authenticatedUserId = currentUserProvider.currentUserId();
     if (!authenticatedUserId.equals(requestedUserId)) {
@@ -36,17 +54,37 @@ public class UserServiceHelper {
     return authenticatedUserId;
   }
 
+  /**
+   * Loads a user by id or fails with HTTP 404.
+   *
+   * @param userId target user id
+   * @return persisted user entity
+   * @throws ResponseStatusException when the user does not exist
+   */
   public User findUserOrThrow(UUID userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
   }
 
+  /**
+   * Checks whether a user exists.
+   *
+   * @param userId user id to verify
+   * @throws ResponseStatusException when the user does not exist
+   */
   public void ensureUserExists(UUID userId) {
     if (!userRepository.existsById(userId)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
     }
   }
 
+  /**
+   * Extracts the profile from a loaded user.
+   *
+   * @param user source user entity
+   * @return linked profile entity
+   * @throws ResponseStatusException when no profile is present
+   */
   public UserProfile requireProfile(User user) {
     UserProfile profile = user.getProfile();
     if (profile == null) {
@@ -55,6 +93,13 @@ public class UserServiceHelper {
     return profile;
   }
 
+  /**
+   * Applies non-null fields from an update request to an existing profile.
+   *
+   * @param profile mutable profile entity
+   * @param request partial update payload
+   * @implNote {@code null} values mean "leave unchanged".
+   */
   public void updateProfile(UserProfile profile, UpdateProfileRequest request) {
     if (request.displayName() != null) {
       profile.setDisplayName(request.displayName());
@@ -71,6 +116,15 @@ public class UserServiceHelper {
   }
 
   // TODO: Maybe it is time to add MapStruct?
+
+  /**
+   * Maps a user entity to the private profile DTO.
+   *
+   * @param user source user entity
+   * @return private profile view
+   * @implSpec Requires a non-null linked {@link UserProfile}; otherwise throws 404 via
+   * {@link #requireProfile(User)}.
+   */
   public MyProfile toMyProfile(User user) {
     UserProfile profile = requireProfile(user);
     return new MyProfile(
@@ -86,6 +140,14 @@ public class UserServiceHelper {
         profile.getVersion());
   }
 
+  /**
+   * Maps a user entity to the public profile DTO.
+   *
+   * @param user source user entity
+   * @return public profile view
+   * @implSpec Reuses the same profile source as private mapping but excludes private account
+   * fields.
+   */
   public PublicProfile toPublicProfile(User user) {
     UserProfile profile = requireProfile(user);
     return new PublicProfile(
@@ -96,6 +158,13 @@ public class UserServiceHelper {
         profile.getBio());
   }
 
+  /**
+   * Maps a listing entity to a summary DTO.
+   *
+   * @param listing source listing entity
+   * @return listing summary
+   * @implNote The first photo is selected by the minimum {@code displayOrder} value.
+   */
   public ListingSummary toListingSummary(Listing listing) {
     String firstPhotoUrl = listing.getPhotos().stream()
         .min(Comparator.comparingInt(ListingPhoto::getDisplayOrder))

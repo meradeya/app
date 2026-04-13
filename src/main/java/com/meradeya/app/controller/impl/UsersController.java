@@ -14,8 +14,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller for user-profile endpoints. All OpenAPI annotations live in {@link UsersControllerApi};
- * this class contains only business logic delegation.
+ * REST controller implementation for {@link UsersControllerApi}.
+ *
+ * <p>OpenAPI annotations remain in the API interface; this class focuses on request logging and
+ * service
+ * delegation.
+ *
+ * @implNote Security decisions are enforced in lower layers (security filters and service ownership
+ * checks), keeping controller methods thin and deterministic.
  */
 @Slf4j
 @RestController
@@ -24,6 +30,14 @@ public class UsersController implements UsersControllerApi {
 
   private final UserService userService;
 
+  /**
+   * Delegates private profile retrieval for a specific user id.
+   *
+   * @param userId target user id from request path
+   * @return HTTP 200 with private profile payload
+   * @implSpec Method adds request/response boundary logs and delegates business rules to
+   * {@link UserService}.
+   */
   @Override
   public ResponseEntity<MyProfile> getUserProfile(UUID userId) {
     log.info("getUserProfile userId={}", userId);
@@ -32,6 +46,15 @@ public class UsersController implements UsersControllerApi {
     return ResponseEntity.ok(profile);
   }
 
+  /**
+   * Delegates partial profile update for a specific user id.
+   *
+   * @param userId  target user id from request path
+   * @param request partial update payload
+   * @return HTTP 200 with updated profile payload
+   * @implSpec Validation, ownership checks, and optimistic locking are enforced in the service
+   * layer.
+   */
   @Override
   public ResponseEntity<MyProfile> updateUserProfile(UUID userId, UpdateProfileRequest request) {
     log.info("updateUserProfile userId={}", userId);
@@ -40,6 +63,12 @@ public class UsersController implements UsersControllerApi {
     return ResponseEntity.ok(profile);
   }
 
+  /**
+   * Delegates public profile retrieval for a specific user id.
+   *
+   * @param userId target user id from request path
+   * @return HTTP 200 with public profile payload
+   */
   @Override
   public ResponseEntity<PublicProfile> getPublicProfile(UUID userId) {
     log.info("getPublicProfile userId={}", userId);
@@ -48,8 +77,19 @@ public class UsersController implements UsersControllerApi {
     return ResponseEntity.ok(profile);
   }
 
+  /**
+   * Delegates retrieval of paginated listings for a specific user id.
+   *
+   * @param userId   target user id from request path
+   * @param status   optional listing status filter
+   * @param page     zero-based page index
+   * @param pageSize page size
+   * @return HTTP 200 with a page of listing summaries
+   * @implSpec Input sanitation and access checks are delegated to the service layer.
+   */
   @Override
-  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status, Integer page,
+  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status,
+      Integer page,
       Integer pageSize) {
     log.info("getUserListings userId={} status={} page={}", userId, status, page);
     Page<ListingSummary> listings = userService.getUserListings(userId, status, page, pageSize);

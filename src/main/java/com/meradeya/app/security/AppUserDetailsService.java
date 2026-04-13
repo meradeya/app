@@ -12,12 +12,35 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Application-specific {@link UserDetailsService} implementation.
+ *
+ * <p>Converts persisted {@link User} entities into {@link AppUserPrincipal} instances used by
+ * Spring
+ * Security.
+ *
+ * @apiNote This service is used in two distinct flows:
+ * <ul>
+ *   <li>credential login via {@link #loadUserByUsername(String)},</li>
+ *   <li>JWT subject re-hydration via {@link #loadByUserId(UUID)}.</li>
+ * </ul>
+ */
 @Service
 @RequiredArgsConstructor
 public class AppUserDetailsService implements UserDetailsService {
 
   private final UserRepository userRepository;
 
+  /**
+   * Loads a user by logical username credential.
+   *
+   * @param username user credential presented during authentication
+   * @return security principal for the matched user
+   * @throws UsernameNotFoundException when no user matches the provided value
+   * @implNote This implementation currently resolves users by normalized email.
+   * @implSpec Returned principal is immutable and safe to cache in the security context for the
+   * current request.
+   */
   @Override
   @Transactional(readOnly = true)
   public @NonNull UserDetails loadUserByUsername(@NonNull String username)
@@ -27,6 +50,14 @@ public class AppUserDetailsService implements UserDetailsService {
         .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + username));
   }
 
+  /**
+   * Loads a user by immutable user id.
+   *
+   * @param userId user id stored in JWT subject claim
+   * @return security principal for the matched user
+   * @throws UsernameNotFoundException when no user exists for the id
+   * @apiNote Used by the JWT filter after token validation to obtain current account state.
+   */
   @Transactional(readOnly = true)
   public @NonNull UserDetails loadByUserId(@NonNull UUID userId) {
     User user = userRepository.findById(userId)
@@ -34,6 +65,12 @@ public class AppUserDetailsService implements UserDetailsService {
     return AppUserPrincipal.from(user);
   }
 
+  /**
+   * Normalizes email-like credentials for case-insensitive lookup.
+   *
+   * @param email raw credential value
+   * @return lower-case normalized value
+   */
   private String normalizeEmail(String email) {
     return email.toLowerCase(Locale.ROOT);
   }
