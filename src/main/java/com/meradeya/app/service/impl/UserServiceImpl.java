@@ -5,7 +5,6 @@ import com.meradeya.app.domain.entity.ListingStatus;
 import com.meradeya.app.domain.entity.User;
 import com.meradeya.app.domain.entity.UserProfile;
 import com.meradeya.app.domain.repository.ListingRepository;
-import com.meradeya.app.domain.repository.UserRepository;
 import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
@@ -14,7 +13,6 @@ import com.meradeya.app.service.face.UserService;
 import com.meradeya.app.service.helper.UserServiceHelper;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +36,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-  private final UserRepository userRepository;
   private final ListingRepository listingRepository;
   private final UserServiceHelper userServiceHelper;
 
@@ -64,8 +61,6 @@ public class UserServiceImpl implements UserService {
    *                                 stale/concurrent updates
    * @implSpec Performs optimistic-lock validation using the profile version provided by the
    * client.
-   * @implNote A repository flush is forced to convert concurrent update races into a 409 response
-   * in the current request.
    */
   @Override
   @Transactional
@@ -74,23 +69,12 @@ public class UserServiceImpl implements UserService {
     User user = userServiceHelper.findUserOrThrow(userId);
     UserProfile profile = userServiceHelper.requireProfile(user);
 
-    if (request.version() == null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Profile version is required for update");
-    }
     if (!request.version().equals(profile.getVersion())) {
       throw new ResponseStatusException(HttpStatus.CONFLICT,
           "Profile was modified by another request. Re-fetch and retry.");
     }
 
     userServiceHelper.updateProfile(profile, request);
-
-    try {
-      userRepository.flush();
-    } catch (OptimisticLockingFailureException ex) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT,
-          "Profile was modified by another request. Re-fetch and retry.", ex);
-    }
 
     return userServiceHelper.toMyProfile(user);
   }
