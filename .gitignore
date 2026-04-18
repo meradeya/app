@@ -28,6 +28,7 @@ bin/
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/**/git_toolbox_prj.xml
+.idea/**/misc.xml
 
 # AWS User-specific
 .idea/**/aws.xml
