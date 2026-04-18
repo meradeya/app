@@ -3,6 +3,7 @@ package com.meradeya.app.security;
 import com.meradeya.app.prop.AuthProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -13,7 +14,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.crypto.SecretKey;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,11 +46,23 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private final AuthProperties authProperties;
   private final AppUserDetailsService appUserDetailsService;
+  private final JwtParser jwtParser;
+
+  public JwtAuthenticationFilter(AuthProperties authProperties,
+      AppUserDetailsService appUserDetailsService) {
+    this.appUserDetailsService = appUserDetailsService;
+
+    // Build crypto/JWT parsing primitives once because auth config is static.
+    // TODO: Maybe make it a separate @Bean?
+    SecretKey key = Keys.hmacShaKeyFor(
+        authProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
+    this.jwtParser = Jwts.parser()
+        .verifyWith(key)
+        .build();
+  }
 
   /**
    * Executes JWT extraction, validation, and principal resolution for a request.
@@ -85,13 +97,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     try {
       String jwt = parseJwt(request);
       if (jwt != null) {
-        SecretKey key = Keys.hmacShaKeyFor(
-            authProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
-
-        Jws<Claims> claimsJws = Jwts.parser()
-            .verifyWith(key)
-            .build()
-            .parseSignedClaims(jwt);
+        Jws<Claims> claimsJws = jwtParser.parseSignedClaims(jwt);
 
         String userId = claimsJws.getPayload().getSubject();
 
@@ -111,6 +117,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
           authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
           SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else if (userId == null) {
+          log.warn("JWT subject is null, skipping authentication");
         }
       }
     } catch (Exception e) {

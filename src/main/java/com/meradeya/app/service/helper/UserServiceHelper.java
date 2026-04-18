@@ -9,6 +9,7 @@ import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
 import com.meradeya.app.dto.user.UpdateProfileRequest;
+import com.meradeya.app.exception.OwnerAccessDeniedException;
 import com.meradeya.app.security.face.CurrentUserProvider;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -41,15 +42,13 @@ public class UserServiceHelper {
    *
    * @param requestedUserId user id supplied by the caller
    * @return authenticated user id when the ownership check succeeds
-   * @throws ResponseStatusException with HTTP 403 when caller tries to access another user's
-   *                                 resource
+   * @throws OwnerAccessDeniedException when caller tries to access another user's resource
    * @apiNote This is the primary guard against horizontal privilege escalation.
    */
   public UUID requireOwnerAccess(UUID requestedUserId) {
     UUID authenticatedUserId = currentUserProvider.currentUserId();
     if (!authenticatedUserId.equals(requestedUserId)) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-          "You can only access your own user resources");
+      throw new OwnerAccessDeniedException();
     }
     return authenticatedUserId;
   }

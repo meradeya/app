@@ -12,6 +12,7 @@ import com.meradeya.app.exception.EmailAlreadyExistsException;
 import com.meradeya.app.exception.InvalidCredentialsException;
 import com.meradeya.app.service.face.AuthService;
 import com.meradeya.app.service.face.TokenService;
+import com.meradeya.app.util.UserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -46,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
    */
   @Override
   public RegisterResponse registerUser(String email, String rawPassword, String displayName) {
-    String normalizedEmail = email.toLowerCase();
+    String normalizedEmail = UserUtils.normalizeEmail(email);
     if (userRepository.existsByEmail(normalizedEmail)) {
       throw new EmailAlreadyExistsException();
     }
@@ -78,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
    */
   @Override
   public TokenPair login(String email, String rawPassword) {
-    User user = userRepository.findByEmail(email.toLowerCase())
+    User user = userRepository.findByEmail(UserUtils.normalizeEmail(email))
         .orElseThrow(InvalidCredentialsException::new);
 
     if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
@@ -127,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public void requestPasswordReset(String email) {
     // Always silently succeed to prevent email enumeration
-    userRepository.findByEmail(email.toLowerCase()).ifPresent(user -> {
+    userRepository.findByEmail(UserUtils.normalizeEmail(email)).ifPresent(user -> {
       user.addAuthToken(tokenService.createPasswordResetToken());
       userRepository.save(user);
       log.info("Password reset token created for user id={}", user.getId());

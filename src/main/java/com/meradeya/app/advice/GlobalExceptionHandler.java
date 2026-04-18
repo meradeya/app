@@ -5,6 +5,7 @@ import com.meradeya.app.exception.AccountSuspendedException;
 import com.meradeya.app.exception.EmailAlreadyExistsException;
 import com.meradeya.app.exception.InvalidCredentialsException;
 import com.meradeya.app.exception.InvalidTokenException;
+import com.meradeya.app.exception.OwnerAccessDeniedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(AccountSuspendedException.class)
   public ResponseEntity<ExceptionDetail> handleAccountSuspended(AccountSuspendedException ex) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        .body(ExceptionDetail.forStatusAndException(HttpStatus.FORBIDDEN, ex));
+  }
+
+  @ExceptionHandler(OwnerAccessDeniedException.class)
+  public ResponseEntity<ExceptionDetail> handleOwnerAccessDenied(OwnerAccessDeniedException ex) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(ExceptionDetail.forStatusAndException(HttpStatus.FORBIDDEN, ex));
   }

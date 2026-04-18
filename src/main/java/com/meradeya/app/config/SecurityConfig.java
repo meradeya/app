@@ -67,9 +67,11 @@ public class SecurityConfig {
                 "/**/auth/password-reset/request",
                 "/**/auth/password-reset/confirm",
                 "/v3/api-docs/**",
+                "/v3/api-docs.yaml",
                 "/swagger-ui.html",
                 "/swagger-ui/**",
-                "/actuator/**",
+                "/actuator/health",
+                "/actuator/info",
                 "/error"
             ).permitAll()
             .anyRequest()

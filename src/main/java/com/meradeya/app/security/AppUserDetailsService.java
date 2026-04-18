@@ -2,7 +2,7 @@ package com.meradeya.app.security;
 
 import com.meradeya.app.domain.entity.User;
 import com.meradeya.app.domain.repository.UserRepository;
-import java.util.Locale;
+import com.meradeya.app.util.UserUtils;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -45,7 +45,7 @@ public class AppUserDetailsService implements UserDetailsService {
   @Transactional(readOnly = true)
   public @NonNull UserDetails loadUserByUsername(@NonNull String username)
       throws UsernameNotFoundException {
-    return userRepository.findByEmail(normalizeEmail(username))
+    return userRepository.findByEmail(UserUtils.normalizeEmail(username))
         .map(AppUserPrincipal::from)
         .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + username));
   }
@@ -63,16 +63,6 @@ public class AppUserDetailsService implements UserDetailsService {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new UsernameNotFoundException("User not found for id: " + userId));
     return AppUserPrincipal.from(user);
-  }
-
-  /**
-   * Normalizes email-like credentials for case-insensitive lookup.
-   *
-   * @param email raw credential value
-   * @return lower-case normalized value
-   */
-  private String normalizeEmail(String email) {
-    return email.toLowerCase(Locale.ROOT);
   }
 
 }

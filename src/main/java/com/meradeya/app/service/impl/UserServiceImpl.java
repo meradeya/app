@@ -130,7 +130,14 @@ public class UserServiceImpl implements UserService {
     }
 
     Pageable pageable = PageRequest.of(safePage, safePageSize);
-    ListingStatus listingStatus = ListingStatus.from(status);
+    ListingStatus listingStatus;
+
+    try {
+      listingStatus = ListingStatus.from(status);
+    } catch (IllegalArgumentException ex) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Invalid listing status: " + status, ex);
+    }
 
     Page<Listing> listings = listingStatus == null
         ? listingRepository.findBySellerId(userId, pageable)
