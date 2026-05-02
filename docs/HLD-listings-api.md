@@ -37,36 +37,37 @@ gives them a review window.
 
 ### 2.2 Buyer Discovers Listings
 
+Three dedicated endpoints serve different discovery intents:
+
 ```
-Buyer opens the app home screen
-  → GET /v1/feed               (personalised feed — ACTIVE listings, recency + category bias)
-  → Paginated via cursor (not page/offset — feed is append-driven)
-  → Buyer performs an explicit search
-  → POST /v1/listings/search   (keyword, category, price, condition filters)
-  → Always returns ACTIVE listings only for public callers
-  → Buyer clicks a card
-  → GET /v1/listings/{id}      (full detail — photos, description, seller info)
+1. Feed (passive discovery)
+   → GET /v1/feed
+   → Always ACTIVE listings, ordered by created_at DESC
+   → Auth optional — personalised ranking planned for a future iteration
+   → Pagination via page/size query params
+
+2. Search (intent-driven)
+   → POST /v1/listings/search
+   → Always ACTIVE listings only
+   → Filters: keyword (FTS), category, condition, price range, sellerId
+   → sellerId filter enables seller profile pages (shows their public listings)
+   → Pagination via page/size/sort query params
+
+3. Listing detail
+   → GET /v1/listings/{id}
+   → Full detail including photos, seller info, attributes
 ```
+
+**Why separate feed and search?**  
+Search is *intent-driven* (buyer knows what they want — filtering and ranking by relevance).
+A feed is *passive discovery* (buyer is browsing �� ordered by recency or personalisation score).
+These will diverge in implementation; separating them now avoids a breaking contract change when a
+recommender is plugged in.
 
 **Why POST for search?**  
-A search request can carry complex filter bodies (nested categories, price range, keyword). Using
-POST avoids URL length limits and is consistent with industry practice for rich search APIs (
-Elasticsearch, Algolia). It also keeps the filter contract versioned in the request body schema.
-
-**Why a separate feed endpoint?**  
-Search is *intent-driven* (the user knows what they want). A feed is *passive discovery* (the user
-is browsing). These are different UX modes that will diverge in implementation — the feed will
-eventually be backed by a recommendation engine, while search stays query-driven. Separating them
-now avoids a breaking contract change later.
-
-**v1 feed implementation:** Returns newest `ACTIVE` listings, optionally biased toward the
-authenticated user's most recently browsed categories. Auth is optional — guests receive a generic
-recency feed. The endpoint contract is designed to be stable when a real recommender is plugged in.
-
-**Why cursor pagination on the feed?**  
-Page/offset pagination is unstable on a live feed: new listings inserted between requests shift
-pages, causing duplicates or gaps. A cursor (`lastSeenId` / `lastSeenCreatedAt`) gives a consistent
-window.
+Filter bodies can be complex (keyword + category + price range). POST avoids URL length limits and
+keeps the filter contract versioned in the request body schema, consistent with industry practice
+(Elasticsearch, Algolia).
 
 ---
 
@@ -84,7 +85,7 @@ Seller takes listing off-market temporarily:
   → POST /v1/listings/{id}/archive
 
 Seller re-activates an archived listing:
-  → POST /v1/listings/{id}/republish
+  → POST /v1/listings/{id}/publish 
 
 Seller marks item as sold / permanently removes:
   → POST /v1/listings/{id}/delete
@@ -99,13 +100,12 @@ Seller marks item as sold / permanently removes:
 
 ```
 Seller opens "My Listings" dashboard
-  → POST /v1/listings/search  { sellerId: <own id>, status: <optional filter> }
-  → Authenticated caller filtering own sellerId may request any status
-  → Returns listings filtered by requested status (or all statuses if omitted)
+  → GET /v1/listings/own                     (all statuses by default)
+  → GET /v1/listings/own?status=DRAFT        (filter to a specific status)
 ```
 
-> The `status` filter in search is **access-controlled** (see §4.3). Only the authenticated owner
-> of the filtered `sellerId` may request non-ACTIVE statuses. Public callers always see ACTIVE only.
+> The caller's identity is the implicit sellerId filter — no need to pass it explicitly.
+> All statuses (`DRAFT`, `ACTIVE`, `ARCHIVED`, `DELETED`) are accessible.
 
 ---
 
@@ -142,20 +142,20 @@ Any transition not listed above is **rejected with HTTP 422**.
 
 ### 4.1 Endpoint Reference
 
-| Method   | Path                                        | Auth Required | Who Can Call | Description                 |
-|----------|---------------------------------------------|:-------------:|--------------|-----------------------------|
-| `GET`    | `/v1/feed`                                  |       ❌       | Anyone       | Personalised / recency feed |
-| `POST`   | `/v1/listings`                              |       ✅       | Seller       | Create a listing in DRAFT   |
-| `POST`   | `/v1/listings/search`                       |       ❌       | Anyone       | Search/browse listings      |
-| `GET`    | `/v1/listings/{listingId}`                  |       ❌       | Anyone       | View listing detail         |
-| `PATCH`  | `/v1/listings/{listingId}`                  |       ✅       | Owner        | Update listing fields       |
-| `POST`   | `/v1/listings/{listingId}/publish`          |       ✅       | Owner        | DRAFT → ACTIVE              |
-| `POST`   | `/v1/listings/{listingId}/archive`          |       ✅       | Owner        | ACTIVE → ARCHIVED           |
-| `POST`   | `/v1/listings/{listingId}/republish`        |       ✅       | Owner        | ARCHIVED → ACTIVE           |
-| `POST`   | `/v1/listings/{listingId}/delete`           |       ✅       | Owner        | ACTIVE\|ARCHIVED → DELETED  |
-| `POST`   | `/v1/listings/{listingId}/photos`           |       ✅       | Owner        | Upload photo (multipart)    |
-| `DELETE` | `/v1/listings/{listingId}/photos/{photoId}` |       ✅       | Owner        | Delete photo                |
-| `GET`    | `/v1/categories`                            |       ❌       | Anyone       | Fetch category tree         |
+| Method   | Path                                        | Auth Required | Who Can Call | Description                        |
+|----------|---------------------------------------------|:-------------:|--------------|------------------------------------|
+| `GET`    | `/v1/feed`                                  |       ❌       | Anyone       | Recency feed (ACTIVE only)         |
+| `POST`   | `/v1/listings/search`                       |       ❌       | Anyone       | Search ACTIVE listings             |
+| `GET`    | `/v1/listings/own`                          |       ✅       | Owner        | Own listings, all statuses         |
+| `POST`   | `/v1/listings`                              |       ✅       | Seller       | Create a listing in DRAFT          |
+| `GET`    | `/v1/listings/{listingId}`                  |       ❌       | Anyone       | View listing detail                |
+| `PATCH`  | `/v1/listings/{listingId}`                  |       ✅       | Owner        | Update listing fields              |
+| `POST`   | `/v1/listings/{listingId}/publish`          |       ✅       | Owner        | DRAFT\|ARCHIVED → ACTIVE           |
+| `POST`   | `/v1/listings/{listingId}/archive`          |       ✅       | Owner        | ACTIVE → ARCHIVED                  |
+| `POST`   | `/v1/listings/{listingId}/delete`           |       ✅       | Owner        | ACTIVE\|ARCHIVED → DELETED         |
+| `POST`   | `/v1/listings/{listingId}/photos`           |       ✅       | Owner        | Upload photo (multipart)           |
+| `DELETE` | `/v1/listings/{listingId}/photos/{photoId}` |       ✅       | Owner        | Delete photo                       |
+| `GET`    | `/v1/categories`                            |       ❌       | Anyone       | Fetch category tree                |
 
 ### 4.2 Visibility Rules
 
@@ -169,45 +169,29 @@ Any transition not listed above is **rejected with HTTP 422**.
 
 ### 4.3 Search Behaviour
 
-`POST /v1/listings/search` accepts:
+`POST /v1/listings/search` always returns `ACTIVE` listings. Filters:
 
-| Filter                       | Type    | Description                                                         |
-|------------------------------|---------|---------------------------------------------------------------------|
-| `q`                          | string  | Full-text keyword search (PostgreSQL `tsvector`)                    |
-| `categoryId`                 | UUID    | Exact category match                                                |
-| `condition`                  | enum    | `NEW`, `LIKE_NEW`, `GOOD`, `FAIR`, `POOR`                           |
-| `minPrice` / `maxPrice`      | decimal | Price range                                                         |
-| `sellerId`                   | UUID    | Filter to a specific seller (used for "My Listings" dashboard)      |
-| `status`                     | enum    | Status filter — see access rules below                              |
-| `page` / `pageSize` / `sort` | —       | Standard pagination (`newest`, `oldest`, `price_asc`, `price_desc`) |
+| Filter              | Type    | Description                                                         |
+|---------------------|---------|---------------------------------------------------------------------|
+| `q`                 | string  | Full-text keyword search (PostgreSQL `tsvector`)                    |
+| `categoryId`        | UUID    | Exact category match                                                |
+| `condition`         | enum    | `NEW`, `LIKE_NEW`, `GOOD`, `FAIR`, `POOR`                           |
+| `minPrice` / `maxPrice` | decimal | Price range                                                    |
+| `sellerId`          | UUID    | Filter to a specific seller — used for seller profile pages         |
 
-**Status visibility enforcement in search:**
+Pagination via query params: `?page=0&size=20&sort=createdAt,desc`.  
+When `q` is provided, results are ranked by full-text relevance.
 
-| Caller                                     | Allowed `status` values                               |
-|--------------------------------------------|-------------------------------------------------------|
-| Unauthenticated (guest)                    | `ACTIVE` only — any other value is ignored            |
-| Authenticated, `sellerId` = own id         | Any status (`DRAFT`, `ACTIVE`, `ARCHIVED`, `DELETED`) |
-| Authenticated, `sellerId` = other / absent | `ACTIVE` only — any other value is ignored            |
+### 4.4 Own Listings
 
-> This prevents accidental exposure of hidden listings through the public search endpoint. The
-> enforcement is silent (ignore, not reject) to avoid leaking whether hidden listings exist.
+`GET /v1/listings/own` — requires authentication.
 
-When `q` is provided, results are ranked by full-text relevance. Otherwise sorted by the `sort`
-parameter.
+| Parameter  | Type          | Description                                              |
+|------------|---------------|----------------------------------------------------------|
+| `status`   | enum (optional) | Filter by status; omit to return all statuses          |
+| `page`, `size`, `sort` | — | Standard pagination query params                  |
 
-### 4.4 Feed Behaviour
-
-`GET /v1/feed` accepts:
-
-| Parameter  | Type   | Description                                                   |
-|------------|--------|---------------------------------------------------------------|
-| `cursor`   | string | Opaque cursor from previous response (`lastSeenId:createdAt`) |
-| `pageSize` | int    | Number of items to return (default 20)                        |
-
-- Always returns `ACTIVE` listings only.
-- Auth optional: authenticated users receive a feed biased toward their recently browsed categories.
-- Response includes a `nextCursor` field; `null` means end of feed.
-
+Returns all statuses (`DRAFT`, `ACTIVE`, `ARCHIVED`, `DELETED`) for the authenticated caller.
 
 ## 5. Photo Storage Strategy
 
@@ -216,6 +200,7 @@ Photos are uploaded as `multipart/form-data` and stored on the **local filesyste
 ```
 Upload flow:
   POST /v1/listings/{id}/photos
+    → reject with 422 if listing status is DELETED
     → validate MIME type (jpeg / png / webp) + file size (≤ 10 MB)
     → enforce 10-photo limit
     → save to:  {uploadDir}/listings/{listingId}/{uuid}.{ext}

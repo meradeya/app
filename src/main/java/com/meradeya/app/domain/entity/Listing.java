@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,7 +55,7 @@ public class Listing {
   private User seller;
 
   @NotNull
-  @Setter(AccessLevel.PACKAGE)
+  @Setter
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id")
   private Category category;
@@ -133,6 +134,26 @@ public class Listing {
   public void removePhoto(ListingPhoto photo) {
     photos.remove(photo);
     photo.setListing(null);
+  }
+
+  @Builder
+  public static Listing create(User seller, Category category,
+      String title, String description,
+      BigDecimal price, String currency,
+      ListingCondition condition, String location,
+      Map<String, Object> attributes) {
+    Listing l = new Listing();
+    l.seller = seller;
+    l.category = category;
+    l.title = title;
+    l.description = description;
+    l.price = price;
+    l.currency = (currency != null) ? currency : "MDL";
+    l.condition = condition;
+    l.location = location;
+    l.attributes = attributes != null ? new HashMap<>(attributes) : new HashMap<>();
+    l.status = ListingStatus.DRAFT;
+    return l;
   }
 
   @PrePersist

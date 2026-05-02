@@ -15,5 +15,5 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
 
   Page<Listing> findBySellerIdAndStatus(UUID sellerId, ListingStatus status, Pageable pageable);
 
+  Page<Listing> findByStatus(ListingStatus status, Pageable pageable);
 }
-

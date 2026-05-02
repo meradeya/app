@@ -27,12 +27,10 @@ public class AuthController implements AuthControllerApi {
   @Override
   public ResponseEntity<RegisterResponse> register(RegisterRequest request) {
     log.info("register");
-
     RegisterResponse body = authService.registerUser(
         request.email(), request.password(), request.displayName()
     );
-
-    log.info("register done");
+    log.info("register end");
     return ResponseEntity.status(HttpStatus.CREATED).body(body);
   }
 
@@ -40,7 +38,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<TokenPair> login(LoginRequest request) {
     log.info("login");
     TokenPair pair = authService.login(request.email(), request.password());
-    log.info("login done");
+    log.info("login end");
     return ResponseEntity.ok(pair);
   }
 
@@ -48,7 +46,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<TokenPair> refresh(RefreshTokenRequest request) {
     log.info("refresh");
     TokenPair pair = authService.refresh(request.refreshToken());
-    log.info("refresh done");
+    log.info("refresh end");
     return ResponseEntity.ok(pair);
   }
 
@@ -56,7 +54,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<Void> logout(RefreshTokenRequest request) {
     log.info("logout");
     authService.logout(request.refreshToken());
-    log.info("logout done");
+    log.info("logout end");
     return ResponseEntity.noContent().build();
   }
 
@@ -64,7 +62,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<Void> verifyEmail(VerifyEmailRequest request) {
     log.info("verifyEmail");
     authService.verifyEmail(request.token());
-    log.info("verifyEmail done");
+    log.info("verifyEmail end");
     return ResponseEntity.noContent().build();
   }
 
@@ -72,7 +70,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<Void> requestPasswordReset(RequestPasswordResetRequest request) {
     log.info("requestPasswordReset");
     authService.requestPasswordReset(request.email());
-    log.info("requestPasswordReset done");
+    log.info("requestPasswordReset end");
     return ResponseEntity.noContent().build();
   }
 
@@ -80,7 +78,7 @@ public class AuthController implements AuthControllerApi {
   public ResponseEntity<Void> confirmPasswordReset(ConfirmPasswordResetRequest request) {
     log.info("confirmPasswordReset");
     authService.confirmPasswordReset(request.token(), request.newPassword());
-    log.info("confirmPasswordReset done");
+    log.info("confirmPasswordReset end");
     return ResponseEntity.noContent().build();
   }
 }

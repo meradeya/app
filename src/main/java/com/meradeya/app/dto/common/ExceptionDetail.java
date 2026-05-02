@@ -28,6 +28,18 @@ public class ExceptionDetail extends ProblemDetail {
     return pd;
   }
 
+  /**
+   * Creates a {@link ExceptionDetail} with explicit title and detail strings. Use when there is no
+   * {@link AppException} available (e.g. framework-level exceptions).
+   */
+  public static ExceptionDetail forStatusTitleAndDetail(HttpStatusCode status, String title,
+      String detail) {
+    ExceptionDetail pd = new ExceptionDetail(status.value());
+    pd.setTitle(title);
+    pd.setDetail(detail);
+    return pd;
+  }
+
   @Override
   @Schema(description = "URI reference identifying the problem type.", example = "about:blank")
   public URI getType() {

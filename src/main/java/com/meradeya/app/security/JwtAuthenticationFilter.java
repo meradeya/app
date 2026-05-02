@@ -1,19 +1,14 @@
 package com.meradeya.app.security;
 
-import com.meradeya.app.prop.AuthProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import javax.crypto.SecretKey;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -51,17 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final AppUserDetailsService appUserDetailsService;
   private final JwtParser jwtParser;
 
-  public JwtAuthenticationFilter(AuthProperties authProperties,
+  public JwtAuthenticationFilter(JwtParser jwtParser,
       AppUserDetailsService appUserDetailsService) {
     this.appUserDetailsService = appUserDetailsService;
-
-    // Build crypto/JWT parsing primitives once because auth config is static.
-    // TODO: Maybe make it a separate @Bean?
-    SecretKey key = Keys.hmacShaKeyFor(
-        authProperties.getJwtSecret().getBytes(StandardCharsets.UTF_8));
-    this.jwtParser = Jwts.parser()
-        .verifyWith(key)
-        .build();
+    this.jwtParser = jwtParser;
   }
 
   /**

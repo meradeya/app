@@ -1,0 +1,57 @@
+categories:
+  - name: Electronics
+    slug: electronics
+    children:
+      - name: Smartphones
+        slug: smartphones
+        children: []
+      - name: Laptops & PCs
+        slug: laptops-pcs
+        children: []
+      - name: TV & Audio
+        slug: tv-audio
+        children: []
+
+  - name: Clothing
+    slug: clothing
+    children:
+      - name: Men's Clothing
+        slug: mens-clothing
+        children: []
+      - name: Women's Clothing
+        slug: womens-clothing
+        children: []
+      - name: Kids' Clothing
+        slug: kids-clothing
+        children: []
+
+  - name: Home & Garden
+    slug: home-garden
+    children: []
+
+  - name: Vehicles
+    slug: vehicles
+    children:
+      - name: Cars
+        slug: cars
+        children: []
+      - name: Motorcycles
+        slug: motorcycles
+        children: []
+      - name: Bicycles
+        slug: bicycles
+        children: []
+
+  - name: Sports
+    slug: sports
+    children: []
+
+  - name: Books & Media
+    slug: books-media
+    children: []
+
+  - name: Other
+    slug: other
+    children: []
+
+

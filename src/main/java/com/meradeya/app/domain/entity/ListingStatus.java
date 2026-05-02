@@ -9,7 +9,7 @@ import java.util.Optional;
  * Use {@link #from(String)} to safely parse external string values into enum constants.
  */
 public enum ListingStatus {
-  DRAFT, ACTIVE, PAUSED, SOLD, ARCHIVED;
+  DRAFT, ACTIVE, ARCHIVED, DELETED;
 
   /**
    * Converts a raw status string to a {@link ListingStatus} value.
