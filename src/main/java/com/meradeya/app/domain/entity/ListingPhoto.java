@@ -56,6 +56,11 @@ public class ListingPhoto {
   @Version
   private long version;
 
+  public ListingPhoto(String url, short displayOrder) {
+    this.url = url;
+    this.displayOrder = displayOrder;
+  }
+
   @PrePersist
   void onCreate() {
     createdAt = Instant.now();

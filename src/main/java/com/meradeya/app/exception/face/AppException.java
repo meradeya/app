@@ -12,6 +12,10 @@ public abstract class AppException extends RuntimeException {
     super(message);
   }
 
+  protected AppException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
   /**
    * Short, human-readable title for the problem.
    */

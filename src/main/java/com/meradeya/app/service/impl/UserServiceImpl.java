@@ -69,11 +69,6 @@ public class UserServiceImpl implements UserService {
     User user = userServiceHelper.findUserOrThrow(userId);
     UserProfile profile = userServiceHelper.requireProfile(user);
 
-    if (!request.version().equals(profile.getVersion())) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT,
-          "Profile was modified by another request. Re-fetch and retry.");
-    }
-
     userServiceHelper.updateProfile(profile, request);
 
     return userServiceHelper.toMyProfile(user);

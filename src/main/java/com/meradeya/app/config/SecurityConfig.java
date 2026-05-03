@@ -1,5 +1,9 @@
 package com.meradeya.app.config;
 
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
+
+import com.meradeya.app.prop.PhotoStorageProperties;
 import com.meradeya.app.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +36,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final PhotoStorageProperties photoStorageProperties;
 
   /**
    * Builds the application security filter chain.
@@ -56,8 +61,8 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
-            // Auth endpoints are public because credentials are supplied in the payload.
-            // Logout remains public so clients can revoke refresh tokens even with an expired access JWT.
+            // Auth lifecycle — credentials are in the payload, no JWT needed.
+            // Logout is public so clients can revoke tokens even after JWT expiry.
             .requestMatchers(
                 "/**/auth/register",
                 "/**/auth/login",
@@ -65,7 +70,20 @@ public class SecurityConfig {
                 "/**/auth/logout",
                 "/**/auth/verify-email",
                 "/**/auth/password-reset/request",
-                "/**/auth/password-reset/confirm",
+                "/**/auth/password-reset/confirm"
+            ).permitAll()
+            // Public listing discovery — ACTIVE listings only, no write access.
+            // /listings/own is PROTECTED; it must be matched before the generic
+            // GET /listings/{listingId} rule, or it would be accidentally permitted.
+            .requestMatchers(GET, "/**/listings/own").authenticated()
+            .requestMatchers(GET, 
+                "/**/feed", 
+                "/**/listings/{listingId}", 
+                "/**/categories",
+                photoStorageProperties.getMediaUrlRoot() + "/**"
+            ).permitAll()
+            .requestMatchers(POST, "/**/listings/search").permitAll()
+            .requestMatchers(
                 "/v3/api-docs/**",
                 "/v3/api-docs.yaml",
                 "/swagger-ui.html",
@@ -74,8 +92,8 @@ public class SecurityConfig {
                 "/actuator/info",
                 "/error"
             ).permitAll()
-            .anyRequest()
-            .authenticated()
+            // Everything else requires a valid JWT
+            .anyRequest().authenticated()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .build();

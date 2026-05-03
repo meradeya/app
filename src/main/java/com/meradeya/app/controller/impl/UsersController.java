@@ -1,7 +1,6 @@
 package com.meradeya.app.controller.impl;
 
 import com.meradeya.app.controller.api.UsersControllerApi;
-import com.meradeya.app.dto.user.ListingSummary;
 import com.meradeya.app.dto.user.MyProfile;
 import com.meradeya.app.dto.user.PublicProfile;
 import com.meradeya.app.dto.user.UpdateProfileRequest;
@@ -9,7 +8,6 @@ import com.meradeya.app.service.face.UserService;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,9 +38,9 @@ public class UsersController implements UsersControllerApi {
    */
   @Override
   public ResponseEntity<MyProfile> getUserProfile(UUID userId) {
-    log.info("getUserProfile userId={}", userId);
+    log.info("getUserProfile");
     MyProfile profile = userService.getUserProfile(userId);
-    log.info("getUserProfile done userId={}", userId);
+    log.info("getUserProfile end");
     return ResponseEntity.ok(profile);
   }
 
@@ -57,9 +55,9 @@ public class UsersController implements UsersControllerApi {
    */
   @Override
   public ResponseEntity<MyProfile> updateUserProfile(UUID userId, UpdateProfileRequest request) {
-    log.info("updateUserProfile userId={}", userId);
+    log.info("updateUserProfile");
     MyProfile profile = userService.updateUserProfile(userId, request);
-    log.info("updateUserProfile done userId={}", userId);
+    log.info("updateUserProfile end");
     return ResponseEntity.ok(profile);
   }
 
@@ -71,29 +69,10 @@ public class UsersController implements UsersControllerApi {
    */
   @Override
   public ResponseEntity<PublicProfile> getPublicProfile(UUID userId) {
-    log.info("getPublicProfile userId={}", userId);
+    log.info("getPublicProfile");
     PublicProfile profile = userService.getPublicProfile(userId);
-    log.info("getPublicProfile done userId={}", userId);
+    log.info("getPublicProfile end");
     return ResponseEntity.ok(profile);
   }
 
-  /**
-   * Delegates retrieval of paginated listings for a specific user id.
-   *
-   * @param userId   target user id from request path
-   * @param status   optional listing status filter
-   * @param page     zero-based page index
-   * @param pageSize page size
-   * @return HTTP 200 with a page of listing summaries
-   * @implSpec Input sanitation and access checks are delegated to the service layer.
-   */
-  @Override
-  public ResponseEntity<Page<ListingSummary>> getUserListings(UUID userId, String status,
-      Integer page,
-      Integer pageSize) {
-    log.info("getUserListings userId={} status={} page={}", userId, status, page);
-    Page<ListingSummary> listings = userService.getUserListings(userId, status, page, pageSize);
-    log.info("getUserListings done userId={} status={} page={}", userId, status, page);
-    return ResponseEntity.ok(listings);
-  }
 }

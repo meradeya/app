@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     id             uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     email          varchar(255) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE users
     CONSTRAINT users_email_lower_chk CHECK (email = lower(email))
 );
 
-CREATE TABLE user_profiles
+CREATE TABLE IF NOT EXISTS user_profiles
 (
     user_id      uuid PRIMARY KEY,
     display_name varchar(100) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE user_profiles
     CONSTRAINT user_profiles_user_fk FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE refresh_tokens
+CREATE TABLE IF NOT EXISTS refresh_tokens
 (
     id         uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     user_id    uuid         NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE refresh_tokens
     CONSTRAINT refresh_tokens_user_fk FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE auth_tokens
+CREATE TABLE IF NOT EXISTS auth_tokens
 (
     id         uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     user_id    uuid         NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE auth_tokens
     CONSTRAINT auth_tokens_type_chk CHECK (type IN ('EMAIL_VERIFY', 'PASSWORD_RESET'))
 );
 
-CREATE TABLE categories
+CREATE TABLE IF NOT EXISTS categories
 (
     id        uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     parent_id uuid,
@@ -64,7 +64,7 @@ CREATE TABLE categories
     CONSTRAINT categories_parent_fk FOREIGN KEY (parent_id) REFERENCES categories (id)
 );
 
-CREATE TABLE listings
+CREATE TABLE IF NOT EXISTS listings
 (
     id            uuid PRIMARY KEY        DEFAULT gen_random_uuid(),
     seller_id     uuid           NOT NULL,
@@ -84,11 +84,11 @@ CREATE TABLE listings
     CONSTRAINT listings_seller_fk FOREIGN KEY (seller_id) REFERENCES users (id),
     CONSTRAINT listings_category_fk FOREIGN KEY (category_id) REFERENCES categories (id),
     CONSTRAINT listings_condition_chk CHECK (condition IN ('NEW', 'LIKE_NEW', 'GOOD', 'FAIR', 'POOR')),
-    CONSTRAINT listings_status_chk CHECK (status IN ('DRAFT', 'ACTIVE', 'PAUSED', 'SOLD', 'ARCHIVED')),
+    CONSTRAINT listings_status_chk CHECK (status IN ('DRAFT', 'ACTIVE', 'ARCHIVED', 'DELETED')),
     CONSTRAINT listings_currency_chk CHECK (char_length(currency) = 3)
 );
 
-CREATE TABLE listing_photos
+CREATE TABLE IF NOT EXISTS listing_photos
 (
     id            uuid PRIMARY KEY      DEFAULT gen_random_uuid(),
     listing_id    uuid         NOT NULL,
@@ -101,14 +101,14 @@ CREATE TABLE listing_photos
     CONSTRAINT listing_photos_listing_order_uk UNIQUE (listing_id, display_order)
 );
 
-CREATE INDEX refresh_tokens_user_revoked_idx ON refresh_tokens (user_id, revoked);
-CREATE INDEX auth_tokens_user_type_used_idx ON auth_tokens (user_id, type, used_at);
-CREATE INDEX categories_parent_idx ON categories (parent_id);
-CREATE INDEX listings_search_vector_idx ON listings USING GIN (search_vector);
-CREATE INDEX listings_attributes_idx ON listings USING GIN (attributes);
-CREATE INDEX listings_seller_status_idx ON listings (seller_id, status);
-CREATE INDEX listings_category_status_idx ON listings (category_id, status);
-CREATE INDEX listing_photos_listing_idx ON listing_photos (listing_id);
+CREATE INDEX IF NOT EXISTS refresh_tokens_user_revoked_idx ON refresh_tokens (user_id, revoked);
+CREATE INDEX IF NOT EXISTS auth_tokens_user_type_used_idx ON auth_tokens (user_id, type, used_at);
+CREATE INDEX IF NOT EXISTS categories_parent_idx ON categories (parent_id);
+CREATE INDEX IF NOT EXISTS listings_search_vector_idx ON listings USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS listings_attributes_idx ON listings USING GIN (attributes);
+CREATE INDEX IF NOT EXISTS listings_seller_status_idx ON listings (seller_id, status);
+CREATE INDEX IF NOT EXISTS listings_category_status_idx ON listings (category_id, status);
+CREATE INDEX IF NOT EXISTS listing_photos_listing_idx ON listing_photos (listing_id);
 
 CREATE OR REPLACE FUNCTION listings_search_vector_trigger_fn()
     RETURNS trigger AS
@@ -121,7 +121,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER listings_search_vector_trigger
+CREATE OR REPLACE TRIGGER listings_search_vector_trigger
     BEFORE INSERT OR UPDATE OF title, description
     ON listings
     FOR EACH ROW

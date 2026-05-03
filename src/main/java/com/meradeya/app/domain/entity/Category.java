@@ -55,17 +55,24 @@ public class Category {
 
   @Version
   private long version;
-
-  @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-  @Getter(AccessLevel.NONE)
-  private List<Listing> listings = new ArrayList<>();
-
+  
   public List<Category> getChildren() {
     return Collections.unmodifiableList(children);
   }
 
-  public List<Listing> getListings() {
-    return Collections.unmodifiableList(listings);
+  public Category(String name, String slug) {
+    this.name = name;
+    this.slug = slug;
+  }
+
+  /**
+   * Detaches this category from its current parent.
+   * Safe to call when parent is already null (no-op).
+   */
+  public void detachFromParent() {
+    if (this.parent != null) {
+      this.parent.removeChild(this); // removeChild calls setParent(null) internally
+    }
   }
 
   public void addChild(Category child) {
@@ -76,16 +83,6 @@ public class Category {
   public void removeChild(Category child) {
     children.remove(child);
     child.setParent(null);
-  }
-
-  public void addListing(Listing listing) {
-    listings.add(listing);
-    listing.setCategory(this);
-  }
-
-  public void removeListing(Listing listing) {
-    listings.remove(listing);
-    listing.setCategory(null);
   }
 
   @Override
