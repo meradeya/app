@@ -34,6 +34,10 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
+    // Cache & Redis
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
@@ -74,4 +78,3 @@ openApi {
         args.add("--spring.profiles.active=dev")
     }
 }
-

@@ -12,16 +12,30 @@ import com.meradeya.app.exception.PhotoStorageException;
 import com.meradeya.app.exception.PhotoUploadException;
 import com.meradeya.app.exception.UserNotFoundException;
 import com.meradeya.app.exception.face.AppException;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+/**
+ * Global REST exception handler that maps domain exceptions to HTTP responses.
+ *
+ * <p>Produces {@link ExceptionDetail} bodies for known error cases and uses
+ * sensible HTTP status codes for authentication, authorization, and validation errors.
+ */
 @Slf4j
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(PhotoUploadException.class)
@@ -75,6 +89,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatus.CONFLICT,
             "Conflict",
             "The resource was modified by another request. Re-fetch and retry."));
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException ex,
+      org.springframework.http.@NonNull HttpHeaders headers,
+      @NonNull HttpStatusCode status,
+      @NonNull WebRequest request
+  ) {
+    String validationErrors = ex.getBindingResult().getFieldErrors()
+        .stream()
+        .map(objectError -> objectError.getField() + " " + objectError.getDefaultMessage())
+        .collect(Collectors.joining("; "));
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ExceptionDetail.forStatusTitleAndDetail(HttpStatus.BAD_REQUEST,
+            "Validation failed", validationErrors));
   }
 
 }

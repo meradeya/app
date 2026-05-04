@@ -42,18 +42,24 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Default listing service with transactional business logic.
+ *
+ * <p>Implements validation, authorization, state transitions, and data mapping
+ * for listing operations.
+ */
 @Slf4j
-@Service
+@Service("defaultListingService")
 @Transactional
 @RequiredArgsConstructor
-public class ListingServiceImpl implements ListingService {
+public class DefaultListingServiceImpl implements ListingService {
 
   // Allowed status transitions: from → set of allowed targets
   private static final Map<ListingStatus, Set<ListingStatus>> ALLOWED_TRANSITIONS = Map.of(
-      ListingStatus.DRAFT,    Set.of(ListingStatus.ACTIVE),
-      ListingStatus.ACTIVE,   Set.of(ListingStatus.ARCHIVED, ListingStatus.DELETED),
+      ListingStatus.DRAFT, Set.of(ListingStatus.ACTIVE),
+      ListingStatus.ACTIVE, Set.of(ListingStatus.ARCHIVED, ListingStatus.DELETED),
       ListingStatus.ARCHIVED, Set.of(ListingStatus.ACTIVE, ListingStatus.DELETED),
-      ListingStatus.DELETED,  Set.of()
+      ListingStatus.DELETED, Set.of()
   );
 
   private final ListingRepository listingRepository;
@@ -80,10 +86,10 @@ public class ListingServiceImpl implements ListingService {
         .location(req.location())
         .attributes(req.attributes())
         .build();
-    
+
     seller.addListing(listing);
     listingRepository.save(listing);
-    
+
     log.info("Created listing {} for seller {}", listing.getId(), sellerId);
     return mapToDetail(listing);
   }
@@ -95,14 +101,22 @@ public class ListingServiceImpl implements ListingService {
   }
 
   @Override
-  public Page<ListingSummary> getOwnListings(UUID callerId, ListingStatus status, Pageable pageable) {
+  public Page<ListingSummary> getOwnListings(UUID callerId, ListingStatus status,
+      Pageable pageable) {
     log.info("getOwnListings: callerId={}, status={}", callerId, status);
     Page<ListingSummary> result = (status != null
         ? listingRepository.findBySellerIdAndStatus(callerId, status, pageable)
         : listingRepository.findBySellerId(callerId, pageable))
         .map(this::mapToSummary);
-    log.info("getOwnListings: returned {} listings for callerId={}", result.getTotalElements(), callerId);
+    log.info("getOwnListings: returned {} listings for callerId={}", result.getTotalElements(),
+        callerId);
     return result;
+  }
+
+  @Override
+  public ListingDetail getListingDetailRaw(UUID listingId) {
+    Listing listing = findListingOrThrow(listingId);
+    return mapToDetail(listing);
   }
 
   @Override

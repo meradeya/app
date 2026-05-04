@@ -258,6 +258,4 @@ All write operations require a valid **JWT Bearer token** in the `Authorization`
 | **Currency**           | Stored as ISO-4217 string; default `MDL`. No conversion in this phase.                 |
 | **Soft deletes**       | No physical row deletion via API. Status transitions preserve referential integrity.   |
 | **Category tree**      | Expected < 500 nodes; loaded fully and assembled in Java (no recursive SQL CTE needed) |
-
-
-
+| **Caching**            | Redis-backed Cache-Aside strategy for listing details and categories. Configurable via Decorator Pattern (`app.cache.listings.enabled`). Per-cache TTLs (`app.cache.listings.ttl`, `app.cache.categories.ttl`), namespaced keys (`app.cache.key-prefix`), and a top-level `app.cache.enabled` switch. Cache failures are logged and treated as cache misses; listing detail reads use `sync=true` to limit stampede. |
