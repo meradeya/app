@@ -12,14 +12,32 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Core listing service contract for read and write operations.
+ *
+ * <p>Implementations may enforce authorization, visibility rules, and caching
+ * strategies, but must preserve the API semantics described in the HLD.
+ */
 public interface ListingService {
-  
+
   Page<ListingSummary> getFeed(Pageable pageable);
 
   Page<ListingSummary> getOwnListings(UUID callerId, ListingStatus status, Pageable pageable);
 
+  /**
+   * Internal method to fetch a listing without visibility or ownership checks.
+   *
+   * <p>Only service implementations should call this method.
+   *
+   * <p><b>DO NOT</b> use it in controllers
+   *
+   * @param listingId listing id
+   * @return listing detail regardless of visibility rules
+   */
+  ListingDetail getListingDetailRaw(UUID listingId);
+
   ListingDetail getListing(UUID listingId, UUID callerId);
-  
+
   ListingDetail createListing(UUID sellerId, CreateListingRequest req);
 
   ListingDetail updateListing(UUID listingId, UUID callerId, UpdateListingRequest req);

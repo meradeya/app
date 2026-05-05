@@ -6,6 +6,10 @@ spring:
       enabled: true
   jpa:
     open-in-view: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   mvc:
     apiversion:
       use:
@@ -16,6 +20,15 @@ spring:
       max-request-size: 11MB
 
 app:
+  cache:
+    enabled: ${APP_CACHE_ENABLED:true}
+    key-prefix: ${APP_CACHE_KEY_PREFIX:app::}
+    listings:
+      enabled: ${APP_CACHE_LISTINGS_ENABLED:true}
+      ttl: ${APP_CACHE_LISTINGS_TTL:1h}
+    categories:
+      ttl: ${APP_CACHE_CATEGORIES_TTL:24h}
+
   auth:
     jwt-secret: ${JWT_SECRET}
     access-token-expiry-seconds: ${ACCESS_TOKEN_EXPIRY:900}
